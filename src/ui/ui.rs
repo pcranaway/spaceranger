@@ -1,4 +1,6 @@
 use std::{
+    error::Error,
+    io::stdout,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -7,38 +9,62 @@ use std::{
     time::Duration,
 };
 
+use crossterm::{
+    execute,
+    terminal::{size, ScrollUp, SetSize},
+};
+use tokio::sync::Mutex;
+
 use super::state::State;
 
 pub struct UI {
     pub state: State,
-    should_render: Arc<AtomicBool>,
+    should_render: AtomicBool,
+    size: (u16, u16),
 }
 
 impl UI {
     pub fn new() -> Self {
         Self {
             state: State::new(),
-            should_render: Arc::new(AtomicBool::new(true)),
+            should_render: AtomicBool::new(true),
+            size: (1, 10),
         }
     }
 
-    pub fn setup(&self) {}
+    pub fn setup(&mut self) -> Result<(), Box<dyn Error>> {
+        // get the terminal size (TODO: be update if resized)
+        self.size = size()?;
 
-    pub fn cleanup(&self) {}
+        // Resize terminal and scroll up.
+        execute!(stdout(), SetSize(10, 10), ScrollUp(5))?;
+
+        Ok(())
+    }
+
+    pub fn cleanup(&self) -> Result<(), Box<dyn Error>> {
+        execute!(stdout(), SetSize(self.size.0, self.size.1))?;
+
+        Ok(())
+    }
 
     pub fn render(&self) {}
 }
 
-pub fn start_rendering(ui: Arc<UI>) {
-    let should_render = ui.should_render.clone();
-
+pub fn start_rendering(ui: Arc<Mutex<UI>>) {
     tokio::spawn(async move {
         loop {
-            let result =
-                should_render.compare_exchange(true, false, Ordering::Relaxed, Ordering::Relaxed);
+            let lock = ui.lock().await;
+
+            let result = lock.should_render.compare_exchange(
+                true,
+                false,
+                Ordering::Relaxed,
+                Ordering::Relaxed,
+            );
 
             if result.is_ok() {
-                ui.render();
+                lock.render();
             }
 
             // TODO: Find a better way to reactively update
