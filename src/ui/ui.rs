@@ -11,7 +11,7 @@ use std::{
 
 use crossterm::{
     execute,
-    terminal::{size, ScrollUp, SetSize},
+    terminal::{disable_raw_mode, enable_raw_mode, size, ScrollUp, SetSize},
 };
 use tokio::sync::Mutex;
 
@@ -36,14 +36,13 @@ impl UI {
         // get the terminal size (TODO: be update if resized)
         self.size = size()?;
 
-        // Resize terminal and scroll up.
-        execute!(stdout(), SetSize(10, 10), ScrollUp(5))?;
+        enable_raw_mode()?;
 
         Ok(())
     }
 
     pub fn cleanup(&self) -> Result<(), Box<dyn Error>> {
-        execute!(stdout(), SetSize(self.size.0, self.size.1))?;
+        disable_raw_mode()?;
 
         Ok(())
     }
