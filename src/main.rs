@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, sync::Arc};
 
 use clap::Parser;
 use tokio::runtime::Runtime;
@@ -24,7 +24,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let rt = Runtime::new()?;
     let _guard = rt.enter();
 
-    let should_render = ui::init_renderer();
+    let ui = Arc::new(ui::ui::UI::new());
+
+    ui::ui::start_rendering(ui.clone());
 
     Ok(())
 }
