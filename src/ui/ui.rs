@@ -1,27 +1,13 @@
-pub struct UIState {
-    cwd: String,
-    cursor: i8,
-    selected: i8,
-}
+use super::state::State;
 
 pub struct UI {
-    state: UIState,
-}
-
-impl UIState {
-    pub fn new() -> Self {
-        Self {
-            cwd: "".to_string(),
-            cursor: 0,
-            selected: -1,
-        }
-    }
+    pub state: State,
 }
 
 impl UI {
     pub fn new() -> Self {
         Self {
-            state: UIState::new(),
+            state: State::new(),
         }
     }
 

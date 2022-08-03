@@ -9,6 +9,7 @@ use std::{
 
 use self::ui::UI;
 
+pub mod state;
 pub mod ui;
 
 pub fn init_renderer() -> Arc<AtomicBool> {
