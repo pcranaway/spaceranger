@@ -1,7 +1,7 @@
 use std::{error::Error, process, sync::Arc};
 
 use clap::Parser;
-use tokio::{runtime::Runtime, signal, sync::Mutex};
+use tokio::{signal, sync::Mutex};
 
 pub mod ui;
 
