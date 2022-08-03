@@ -1,7 +1,7 @@
-use std::{error::Error, sync::Arc};
+use std::{error::Error, process, sync::Arc};
 
 use clap::Parser;
-use tokio::runtime::Runtime;
+use tokio::{runtime::Runtime, signal};
 
 pub mod ui;
 
@@ -17,16 +17,16 @@ struct Args {
     config: String,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let args = Args::parse();
-
-    // start tokio runtime
-    let rt = Runtime::new()?;
-    let _guard = rt.enter();
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let _args = Args::parse();
 
     let ui = Arc::new(ui::ui::UI::new());
-
+    ui.setup();
     ui::ui::start_rendering(ui.clone());
 
-    Ok(())
+    // wait for ctrl c
+    signal::ctrl_c().await?;
+    ui.cleanup();
+    process::exit(0);
 }
